@@ -65,27 +65,38 @@ def get_updates(offset=None, timeout=25):
     return resp.json().get("result", [])
 
 
-def answer_callback(callback_id: str, text: str = ""):
-    requests.post(
-        _url("answerCallbackQuery"),
-        json={"callback_query_id": callback_id, "text": text},
-        timeout=30,
-    )
+def answer_callback(callback_id: str, text: str = "") -> bool:
+    """Best-effort ack of a button tap. Never raises (network can be flaky)."""
+    try:
+        requests.post(
+            _url("answerCallbackQuery"),
+            json={"callback_query_id": callback_id, "text": text},
+            timeout=30,
+        )
+        return True
+    except requests.RequestException as exc:
+        print(f"[tg] answer_callback failed: {exc}")
+        return False
 
 
-def edit_message(chat_id, message_id, text: str):
-    """Replace a message's text and drop its buttons (after acting on it)."""
-    requests.post(
-        _url("editMessageText"),
-        json={
-            "chat_id": chat_id,
-            "message_id": message_id,
-            "text": text,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-        },
-        timeout=30,
-    )
+def edit_message(chat_id, message_id, text: str) -> bool:
+    """Replace a message's text and drop its buttons. Never raises."""
+    try:
+        requests.post(
+            _url("editMessageText"),
+            json={
+                "chat_id": chat_id,
+                "message_id": message_id,
+                "text": text,
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True,
+            },
+            timeout=30,
+        )
+        return True
+    except requests.RequestException as exc:
+        print(f"[tg] edit_message failed: {exc}")
+        return False
 
 
 def esc(text: str) -> str:

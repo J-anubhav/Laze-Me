@@ -82,7 +82,10 @@ def main():
         for u in updates:
             offset = u["update_id"] + 1
             if "callback_query" in u:
-                handle_callback(u["callback_query"])
+                try:
+                    handle_callback(u["callback_query"])
+                except Exception as exc:  # noqa: BLE001 - one bad tap must not kill the bot
+                    print(f"[bot] handler error: {exc}")
 
 
 if __name__ == "__main__":
