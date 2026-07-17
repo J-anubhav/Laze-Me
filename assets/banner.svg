@@ -1,0 +1,51 @@
+<svg width="1280" height="360" viewBox="0 0 1280 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lazy Me — your Gmail, sorted and delivered to Telegram">
+  <defs>
+    <style>
+      .wm   { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-weight: 400; }
+      .mono { font-family: "Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight: 400; }
+    </style>
+  </defs>
+
+  <!-- canvas -->
+  <rect width="1280" height="360" fill="#0a0a0a"/>
+  <rect x="0.5" y="0.5" width="1279" height="359" fill="none" stroke="#212327" stroke-width="1"/>
+
+  <!-- left: wordmark -->
+  <g transform="translate(80,120)">
+    <circle cx="8" cy="20" r="7" fill="#ff7a17"/>
+    <text class="mono" x="30" y="25" font-size="14" fill="#7d8187" letter-spacing="2">SELF-HOSTED INBOX TRIAGE</text>
+
+    <text class="wm" x="0" y="96" font-size="82" fill="#ffffff" letter-spacing="-3">Lazy Me</text>
+
+    <text class="wm" x="2" y="140" font-size="21" fill="#dadbdf">Your Gmail, sorted and delivered to Telegram.</text>
+    <text class="mono" x="2" y="176" font-size="13" fill="#7d8187" letter-spacing="1.5">NO AI KEY REQUIRED  ·  READ-ONLY GMAIL  ·  RUNS WHILE YOUR PC IS OFF</text>
+  </g>
+
+  <!-- right: digest card, xai chrome -->
+  <g transform="translate(900,60)">
+    <rect width="300" height="240" rx="8" fill="#191919" stroke="#212327" stroke-width="1"/>
+    <!-- bar -->
+    <circle cx="28" cy="34" r="13" fill="#363a3f"/>
+    <text class="wm" x="26" y="39" font-size="12" fill="#dadbdf" text-anchor="middle">✈</text>
+    <text class="wm" x="50" y="32" font-size="14" fill="#ffffff">Lazy Me</text>
+    <text class="mono" x="50" y="48" font-size="10" fill="#7d8187" letter-spacing="1">BOT · TODAY</text>
+    <line x1="20" y1="62" x2="280" y2="62" stroke="#212327" stroke-width="1"/>
+
+    <!-- rows -->
+    <g transform="translate(20,66)">
+      <rect width="260" height="52" rx="8" fill="#1a1c20" stroke="#212327" stroke-width="1"/>
+      <text class="wm" x="14" y="24" font-size="13" fill="#ffffff">Job — Listings</text>
+      <text class="mono" x="246" y="24" font-size="11" fill="#7d8187" text-anchor="end">4</text>
+      <text class="wm" x="14" y="42" font-size="12" fill="#dadbdf">Software Engineer @ Indeed</text>
+    </g>
+
+    <g transform="translate(20,128)">
+      <rect width="260" height="86" rx="8" fill="#1a1c20" stroke="#212327" stroke-width="1"/>
+      <text class="wm" x="14" y="24" font-size="13" fill="#ffffff">Promotions</text>
+      <text class="mono" x="246" y="24" font-size="11" fill="#7d8187" text-anchor="end">1</text>
+      <text class="wm" x="14" y="42" font-size="12" fill="#dadbdf">Earn a stipend up to ₹50,000</text>
+      <rect x="14" y="54" width="232" height="24" rx="12" fill="none" stroke="#3a3021" stroke-width="1"/>
+      <text class="mono" x="130" y="70" font-size="10.5" fill="#ffc285" text-anchor="middle" letter-spacing="0.5">TRASH ALL #PROMOTIONS (1)</text>
+    </g>
+  </g>
+</svg>

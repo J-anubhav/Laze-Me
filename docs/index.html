@@ -1,0 +1,300 @@
+<title>Lazy Me — your Gmail, sorted and delivered to Telegram</title>
+<meta name="description" content="Lazy Me reads your Gmail, tags it into clean categories, and delivers a tidy digest to Telegram. Self-hosted, scheduled, and free with no AI key required.">
+<style>
+  :root {
+    --canvas:#0a0a0a; --card:#191919; --soft:#1a1c20; --mid:#363a3f; --hairline:#212327;
+    --ink:#ffffff; --body:#dadbdf; --mute:#7d8187;
+    --sunset:#ff7a17; --sunset-soft:#ffc285; --dusk:#7c3aed; --twilight:#c4b5fd; --breeze:#a0c3ec;
+    --pill-border:rgba(255,255,255,0.25);
+    --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SF Mono","IBM Plex Mono",Menlo,Consolas,monospace;
+    --maxw:1200px;
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    margin:0; background:var(--canvas); color:var(--ink);
+    font-family:var(--sans); font-weight:400; line-height:1.5;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+  a { color:inherit; text-decoration:none; }
+
+  h1,h2,h3 { font-weight:400; margin:0; text-wrap:balance; }
+  .d-xl { font-size:clamp(44px,8vw,96px); line-height:1.0; letter-spacing:-0.028em; }
+  .d-lg { font-size:clamp(38px,6vw,72px); line-height:1.02; letter-spacing:-0.025em; }
+  .d-md { font-size:clamp(30px,4.4vw,48px); line-height:1.02; letter-spacing:-0.022em; }
+  .d-sm { font-size:clamp(22px,2.6vw,30px); line-height:1.12; letter-spacing:-0.018em; }
+  .lead { font-size:18px; line-height:1.55; color:var(--body); }
+  .body-mute { color:var(--mute); }
+
+  .eyebrow {
+    font-family:var(--mono); font-size:13px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mute); display:inline-block;
+  }
+
+  /* ---- pills ---- */
+  .pill {
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    font-family:var(--sans); font-size:14px; line-height:20px; color:var(--ink);
+    padding:9px 18px; border-radius:9999px; border:1px solid var(--pill-border);
+    background:transparent; transition:background .15s ease, border-color .15s ease;
+  }
+  .pill:hover { background:var(--soft); border-color:rgba(255,255,255,0.45); }
+  .pill.solid { background:var(--ink); color:var(--canvas); border-color:var(--ink); }
+  .pill.solid:hover { background:#ececea; }
+
+  /* ---- nav ---- */
+  header.nav {
+    position:sticky; top:0; z-index:20; background:rgba(10,10,10,0.82);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--hairline);
+  }
+  .nav .wrap { display:flex; align-items:center; justify-content:space-between; height:60px; }
+  .brand { display:flex; align-items:center; gap:11px; font-size:17px; letter-spacing:-0.02em; }
+  .brand .dot { width:9px; height:9px; border-radius:9999px; background:var(--sunset); }
+  .nav .links { display:flex; align-items:center; gap:28px; }
+  .nav .links a.txt { font-size:14px; color:var(--body); }
+  .nav .links a.txt:hover { color:var(--ink); }
+  @media (max-width:760px){ .nav .links a.txt { display:none; } }
+
+  /* ---- sections ---- */
+  section { padding:88px 0; border-bottom:1px solid var(--hairline); }
+  @media (max-width:760px){ section { padding:60px 0; } }
+  .head { max-width:760px; }
+  .head .d-md { margin-top:16px; }
+  .head .lead { margin-top:18px; }
+
+  /* ---- hero ---- */
+  .hero { padding:96px 0; }
+  .hero .grid { display:grid; grid-template-columns:1.1fr .9fr; gap:64px; align-items:center; }
+  @media (max-width:940px){ .hero .grid { grid-template-columns:1fr; gap:48px; } .hero { padding:64px 0; } }
+  .hero h1 { margin-top:22px; }
+  .hero .lead { margin-top:26px; max-width:32em; }
+  .hero .cta { display:flex; gap:12px; margin-top:34px; flex-wrap:wrap; }
+  .hero .meta { display:flex; gap:22px; margin-top:30px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; letter-spacing:0.06em; color:var(--mute); text-transform:uppercase; }
+  .hero .meta span::before { content:"— "; color:var(--sunset); }
+
+  /* ---- phone illustration ---- */
+  .phone { background:var(--card); border:1px solid var(--hairline); border-radius:12px; padding:14px; width:100%; max-width:370px; margin:0 auto; }
+  .phone .bar { display:flex; align-items:center; gap:10px; padding:4px 4px 13px; border-bottom:1px solid var(--hairline); }
+  .phone .bar .av { width:28px; height:28px; border-radius:9999px; background:var(--mid); display:grid; place-items:center; font-size:13px; }
+  .phone .bar .nm { font-size:14px; }
+  .phone .bar .nm small { display:block; color:var(--mute); font-size:11px; font-family:var(--mono); letter-spacing:.05em; }
+  .feed { display:flex; flex-direction:column; gap:9px; padding-top:12px; }
+  .msg { background:var(--soft); border:1px solid var(--hairline); border-radius:8px; padding:12px 13px;
+    opacity:0; transform:translateY(8px); animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards; }
+  .msg:nth-child(1){animation-delay:.05s;} .msg:nth-child(2){animation-delay:.3s;}
+  .msg:nth-child(3){animation-delay:.55s;} .msg:nth-child(4){animation-delay:.8s;}
+  @keyframes rise { to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion:reduce){ .msg { animation:none; opacity:1; transform:none; } }
+  .msg .t { font-size:14px; display:flex; align-items:baseline; gap:8px; }
+  .msg .t .c { margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--mute); }
+  .msg .sub { font-family:var(--mono); font-size:11px; color:var(--mute); margin-top:3px; letter-spacing:.04em; }
+  .msg ul { margin:8px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .msg li { font-size:12.5px; color:var(--body); }
+  .htag { font-family:var(--mono); font-size:11px; letter-spacing:.05em; padding:3px 9px; border-radius:9999px;
+    display:inline-block; margin-top:10px; border:1px solid var(--hairline); color:var(--mute); }
+  .htag.a { color:var(--breeze); border-color:rgba(160,195,236,.3); }
+  .htag.b { color:var(--sunset-soft); border-color:rgba(255,122,23,.3); }
+  .htag.c { color:var(--twilight); border-color:rgba(196,181,253,.3); }
+  .trash { margin-top:10px; width:100%; font-family:var(--mono); font-size:11.5px; letter-spacing:.04em;
+    color:var(--ink); background:transparent; border:1px solid var(--pill-border); border-radius:9999px;
+    padding:7px; cursor:pointer; transition:background .15s; }
+  .trash:hover { background:var(--soft); }
+
+  /* ---- steps ---- */
+  .cols3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:48px; }
+  @media (max-width:820px){ .cols3 { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--hairline); border-radius:8px; padding:24px; }
+  .card .k { font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); }
+  .card .d-sm { margin:14px 0 10px; }
+  .card p { margin:0; color:var(--body); font-size:15px; line-height:1.6; }
+
+  /* ---- features ---- */
+  .featgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:48px; }
+  @media (max-width:820px){ .featgrid { grid-template-columns:1fr; } }
+  .feat { background:var(--card); border:1px solid var(--hairline); border-radius:8px; padding:24px; }
+  .feat .k { font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--mute); }
+  .feat h3 { font-size:19px; letter-spacing:-0.01em; margin:14px 0 8px; }
+  .feat p { margin:0; color:var(--body); font-size:14.5px; line-height:1.6; }
+
+  /* ---- code ---- */
+  .code { background:var(--card); border:1px solid var(--hairline); border-radius:8px; overflow-x:auto; margin-top:44px; max-width:780px; }
+  .code .cb { display:flex; gap:7px; padding:14px 18px; border-bottom:1px solid var(--hairline); }
+  .code .cb i { width:10px; height:10px; border-radius:9999px; border:1px solid var(--pill-border); }
+  .code pre { margin:0; padding:22px 24px; font-family:var(--mono); font-size:13.5px; line-height:1.85; color:var(--body); }
+  .code .c { color:var(--mute); } .code .k { color:var(--sunset-soft); }
+
+  /* ---- closing ---- */
+  .close { text-align:center; border-bottom:none; }
+  .close .lead { margin:20px auto 32px; max-width:30em; }
+  .close .cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  footer.legal { padding:34px 0; }
+  footer.legal .wrap { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; letter-spacing:.05em; color:var(--mute); }
+  footer.legal a:hover { color:var(--ink); }
+
+  :focus-visible { outline:2px solid var(--breeze); outline-offset:3px; }
+</style>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span>Lazy Me</div>
+    <nav class="links">
+      <a class="txt" href="#how">How it works</a>
+      <a class="txt" href="#features">Features</a>
+      <a class="txt" href="#start">Quick start</a>
+      <a class="pill solid" href="https://github.com/J-anubhav/Lazy-Me">Star on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap grid">
+      <div>
+        <span class="eyebrow">Self-hosted inbox triage</span>
+        <h1 class="d-xl">Stop scrolling your inbox. Let a bot read it for you.</h1>
+        <p class="lead">Lazy Me reads your Gmail, sorts every email into clean tagged categories, and delivers a tidy digest to Telegram — where one tap trashes a whole category.</p>
+        <div class="cta">
+          <a class="pill solid" href="#start">Get started</a>
+          <a class="pill" href="https://github.com/J-anubhav/Lazy-Me">View source</a>
+        </div>
+        <div class="meta">
+          <span>No AI key required</span>
+          <span>Read-only Gmail</span>
+          <span>Runs while your PC is off</span>
+        </div>
+      </div>
+
+      <div class="phone" aria-hidden="true">
+        <div class="bar">
+          <div class="av">✈</div>
+          <div class="nm">Lazy Me <small>BOT · TODAY</small></div>
+        </div>
+        <div class="feed">
+          <div class="msg">
+            <div class="t">Lazy Me · today <span class="c">6 MAIL</span></div>
+            <div class="sub">JOB 4 · PROMO 1 · PERSONAL 1</div>
+          </div>
+          <div class="msg">
+            <div class="t">Job — Listings <span class="c">4</span></div>
+            <ul>
+              <li>Software Engineer @ Indeed</li>
+              <li>AI/ML Engineer (Remote)</li>
+              <li>Backend Developer, AlgoSec</li>
+            </ul>
+            <span class="htag a">#JobAlerts</span>
+          </div>
+          <div class="msg">
+            <div class="t">Promotions <span class="c">1</span></div>
+            <ul><li>Earn a stipend up to ₹50,000</li></ul>
+            <span class="htag b">#Promotions</span>
+            <button class="trash" onclick="this.textContent='TRASHED 1 · #Promotions'; this.disabled=true;">Trash all #Promotions (1)</button>
+          </div>
+          <div class="msg">
+            <div class="t">Personal <span class="c">1</span></div>
+            <ul><li>Akshay accepted your invitation</li></ul>
+            <span class="htag c">#Personal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap head">
+      <span class="eyebrow">The differentiator</span>
+      <h2 class="d-md">Free by default. AI optional.</h2>
+      <p class="lead">Every other AI-email tool wants a subscription. Lazy Me ships with a built-in rule-based sorter, so it works with zero API keys. Add a Gemini or OpenAI key later only if you want AI-written summaries — the pipeline never breaks either way.</p>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">How it works</span>
+        <h2 class="d-md">Three steps, then you forget it exists</h2>
+      </div>
+      <div class="cols3">
+        <div class="card">
+          <div class="k">Step 01 · Fetch</div>
+          <h3 class="d-sm">Read the day's Gmail</h3>
+          <p>Pulls that day's messages through the official Gmail API over OAuth — read-only, no password ever stored.</p>
+        </div>
+        <div class="card">
+          <div class="k">Step 02 · Sort</div>
+          <h3 class="d-sm">Tag into categories</h3>
+          <p>A free heuristic sorts by sender and subject into nine buckets. Add an AI key and it writes summaries instead.</p>
+        </div>
+        <div class="card">
+          <div class="k">Step 03 · Deliver</div>
+          <h3 class="d-sm">Text you the digest</h3>
+          <p>One card per category lands in Telegram, each tagged and tappable — including a button to trash the whole tag.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Features</span>
+        <h2 class="d-md">Small tool, thorough about your inbox</h2>
+      </div>
+      <div class="featgrid">
+        <div class="feat"><div class="k">CATEGORIES</div><h3>Nine smart buckets</h3><p>Rejections, interviews, applications, job alerts, finance, promos, personal, newsletters, and a catch-all.</p></div>
+        <div class="feat"><div class="k">COST</div><h3>Zero-key mode</h3><p>Works fully free with a rule-based sorter. AI providers are a drop-in upgrade, never a requirement.</p></div>
+        <div class="feat"><div class="k">CONTROL</div><h3>Trash by tag</h3><p>One tap moves an entire category to Gmail Trash — recoverable for ~30 days, never a hard delete.</p></div>
+        <div class="feat"><div class="k">FILTER</div><h3>Tappable #tags</h3><p>Each card ends in a hashtag you can tap in Telegram to filter that category across every day.</p></div>
+        <div class="feat"><div class="k">RANGE</div><h3>Any date</h3><p>Re-run a digest for today, yesterday, or any specific date with a single flag.</p></div>
+        <div class="feat"><div class="k">SCHEDULE</div><h3>Runs itself</h3><p>A GitHub Actions cron fires it daily in the cloud — your machine doesn't need to be on.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Quick start</span>
+        <h2 class="d-md">Up and running in five commands</h2>
+        <p class="lead">Python 3.9+, a Google account, and a Telegram account is all you need.</p>
+      </div>
+      <div class="code">
+        <div class="cb"><i></i><i></i><i></i></div>
+<pre><span class="c"># clone &amp; install</span>
+git clone https://github.com/J-anubhav/Lazy-Me.git
+<span class="k">cd</span> Lazy-Me &amp;&amp; pip install -r requirements.txt
+
+<span class="c"># authorize Gmail — one-time, opens a browser</span>
+python auth_setup.py
+
+<span class="c"># preview today's digest, sends nothing</span>
+python src/main.py <span class="k">--dry-run</span>
+
+<span class="c"># for real, lands in Telegram</span>
+python src/main.py</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="close">
+    <div class="wrap">
+      <span class="eyebrow">Reclaim your inbox</span>
+      <h2 class="d-lg">Let the bot do the reading.</h2>
+      <p class="lead">Self-hosted, free, and yours to bend. Give it a star and never scroll your inbox again.</p>
+      <div class="cta">
+        <a class="pill solid" href="https://github.com/J-anubhav/Lazy-Me">Star on GitHub</a>
+        <a class="pill" href="https://github.com/J-anubhav/Lazy-Me#-quick-start">Read the docs</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="legal">
+  <div class="wrap">
+    <span>MIT © 2026 J-ANUBHAV</span>
+    <a href="https://github.com/J-anubhav/Lazy-Me">GITHUB.COM/J-ANUBHAV/LAZY-ME</a>
+  </div>
+</footer>
