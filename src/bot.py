@@ -22,9 +22,17 @@ import telegram_client as tg
 
 
 def _authorized(cq) -> bool:
-    """Only the owner's chat may trigger deletes."""
+    """Only the owner, in the configured chat, may trigger deletes.
+
+    Checking the chat alone is not enough: in a group chat every member can
+    tap buttons, so the tapping user's id must match TELEGRAM_OWNER_ID too.
+    """
     chat_id = str(cq.get("message", {}).get("chat", {}).get("id", ""))
-    return chat_id == str(config.TELEGRAM_CHAT_ID)
+    user_id = str(cq.get("from", {}).get("id", ""))
+    return (
+        chat_id == str(config.TELEGRAM_CHAT_ID)
+        and user_id == str(config.TELEGRAM_OWNER_ID)
+    )
 
 
 def handle_callback(cq):

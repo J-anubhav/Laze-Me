@@ -20,6 +20,10 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemma-4-31b-it")
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+# User id allowed to tap Trash buttons. Defaults to TELEGRAM_CHAT_ID, which is
+# correct for a private chat (user id == chat id). MUST be set explicitly if
+# TELEGRAM_CHAT_ID is a group, or any group member could trash your mail.
+TELEGRAM_OWNER_ID = os.environ.get("TELEGRAM_OWNER_ID", "") or TELEGRAM_CHAT_ID
 
 # --- Behavior ---
 DIGEST_TIMEZONE = os.environ.get("DIGEST_TIMEZONE", "Asia/Kolkata")
@@ -45,6 +49,11 @@ CATEGORY_META = [
 CATEGORIES = [c["name"] for c in CATEGORY_META]
 EMOJI = {c["name"]: c["emoji"] for c in CATEGORY_META}
 TAG = {c["name"]: c["tag"] for c in CATEGORY_META}
+
+# Categories that never get a "Trash all" button. The LLM decides the grouping
+# from untrusted email text, so bulk-delete stays off the bucket that catches
+# anything genuinely important.
+TRASH_EXEMPT = {"Other/Important"}
 
 
 def require(*names: str) -> None:

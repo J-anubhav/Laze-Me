@@ -1,7 +1,9 @@
-google-api-python-client
-google-auth
-google-auth-oauthlib
-google-genai
-requests
-python-dotenv
-tzdata
+# Pinned so CI (which holds the Gmail refresh token) installs known versions,
+# not whatever published to PyPI last night. Bump deliberately.
+google-api-python-client==2.198.0
+google-auth==2.55.2
+google-auth-oauthlib==1.4.0
+google-genai==2.11.0
+requests==2.33.1
+python-dotenv==1.2.2
+tzdata==2026.2

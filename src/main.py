@@ -33,6 +33,19 @@ def display_name(from_header: str) -> str:
     return addr.split("@", 1)[0] if "@" in addr else (addr or "Unknown")
 
 
+def sender_address(from_header: str) -> str:
+    """'Jane Doe <jane@x.com>' -> 'jane@x.com'. Empty if no address found.
+
+    Shown alongside the display name so a spoofed name ("Google Security")
+    can't hide who actually sent the mail.
+    """
+    raw = (from_header or "").strip()
+    if "<" in raw and ">" in raw:
+        raw = raw.split("<", 1)[1].split(">", 1)[0]
+    raw = raw.strip()
+    return raw if "@" in raw else ""
+
+
 def build_messages(emails, result, day=None, with_buttons=True):
     """Return a list of (text, reply_markup) for Telegram: header, then per category.
 
@@ -59,6 +72,7 @@ def build_messages(emails, result, day=None, with_buttons=True):
                 "id": e.get("id"),
                 "summary": (item.get("summary") or e.get("subject", "")).strip(),
                 "sender": display_name(e.get("from", "")),
+                "addr": sender_address(e.get("from", "")),
             }
         )
 
@@ -84,13 +98,16 @@ def build_messages(emails, result, day=None, with_buttons=True):
         lines.append("")
         for it in items:
             lines.append(f"• {tg.esc(it['summary']) or '(no subject)'}")
-            if it["sender"]:
-                lines.append(f"   <i>{tg.esc(it['sender'])}</i>")
+            sender, addr = it["sender"], it["addr"]
+            if addr and sender and sender != addr:
+                lines.append(f"   <i>{tg.esc(sender)}</i> · {tg.esc(addr)}")
+            elif addr or sender:
+                lines.append(f"   <i>{tg.esc(addr or sender)}</i>")
         lines.append("")
         lines.append(tag)
 
         markup = None
-        if with_buttons:
+        if with_buttons and cat not in config.TRASH_EXEMPT:
             ids = [it["id"] for it in items if it["id"]]
             if ids:
                 token = state.new_token()
