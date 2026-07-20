@@ -15,7 +15,7 @@ GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
 
 # --- LLM (Gemini) ---
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemma-4-31b-it")
 
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")

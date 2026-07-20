@@ -1,9 +1,13 @@
 """Send the digest to Telegram via the Bot API."""
 import html
+import time
 
 import requests
 
 import config
+
+# Small gap between messages so a multi-card digest doesn't trip flood control.
+SEND_GAP_SECONDS = 0.6
 
 _BASE = "https://api.telegram.org/bot{token}/{method}"
 _MAX = 4096  # Telegram hard limit per message.
@@ -30,6 +34,24 @@ def _chunks(text: str):
         yield buf
 
 
+def _post_message(payload, max_retries=5):
+    """POST sendMessage, honoring Telegram 429 flood-control retry_after."""
+    for attempt in range(max_retries):
+        resp = requests.post(_url("sendMessage"), json=payload, timeout=30)
+        if resp.status_code == 429:
+            retry_after = 1
+            try:
+                retry_after = resp.json().get("parameters", {}).get("retry_after", 1)
+            except ValueError:
+                pass
+            print(f"[tg] flood control, waiting {retry_after}s...")
+            time.sleep(retry_after + 0.5)
+            continue
+        resp.raise_for_status()
+        return
+    resp.raise_for_status()  # exhausted retries
+
+
 def send(text: str, reply_markup=None):
     """Send a message. If reply_markup is given, it's attached to the LAST chunk."""
     chunks = list(_chunks(text))
@@ -42,8 +64,7 @@ def send(text: str, reply_markup=None):
         }
         if reply_markup and i == len(chunks) - 1:
             payload["reply_markup"] = reply_markup
-        resp = requests.post(_url("sendMessage"), json=payload, timeout=30)
-        resp.raise_for_status()
+        _post_message(payload)
 
 
 def trash_button(count: int, tag: str, token: str) -> dict:

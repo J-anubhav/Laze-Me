@@ -1,8 +1,8 @@
-"""Gemini: classify each email into a category and write short summaries."""
+"""Gemini/Gemma: classify each email into a category and write short summaries."""
 import json
+import re
 
 from google import genai
-from google.genai import types
 
 import config
 
@@ -13,7 +13,11 @@ of these categories:
 For every email, write a one-line summary (max ~15 words) capturing what it is and
 any action needed. Then write a brief overall digest per non-empty category.
 
-Return ONLY JSON of this shape:
+Output rules — follow exactly:
+- Output ONLY raw JSON. No explanation, no reasoning, no markdown, no code fences.
+- The response MUST start with {{ and end with }}.
+
+JSON shape:
 {{
   "emails": [
     {{"index": 0, "category": "<one category>", "summary": "<one line>"}}
@@ -26,6 +30,25 @@ Return ONLY JSON of this shape:
 Emails:
 {emails}
 """
+
+
+def _extract_json(text: str):
+    """Parse JSON from a model reply, tolerating prose/fences around it.
+
+    Open models (Gemma) ignore JSON mode and may wrap the object in reasoning
+    or ```json fences, so grab the outermost {...} and parse that.
+    """
+    text = text.strip()
+    # Strip a leading ```json / ``` fence if present.
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.IGNORECASE).strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    start, end = text.find("{"), text.rfind("}")
+    if start != -1 and end > start:
+        return json.loads(text[start : end + 1])
+    raise ValueError("no JSON object found in model reply")
 
 
 def heuristic(email) -> str:
@@ -180,15 +203,15 @@ def categorize(emails):
 
     try:
         client = genai.Client(api_key=config.GEMINI_API_KEY)
+        # No response_mime_type: Gemma models ignore it; we parse robustly instead.
         resp = client.models.generate_content(
             model=config.GEMINI_MODEL,
             contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
-        data = json.loads(resp.text)
+        data = _extract_json(resp.text)
         if not isinstance(data.get("emails"), list):
             raise ValueError("missing 'emails' list")
         return data
     except Exception as exc:  # noqa: BLE001 - never let triage crash the digest
-        print(f"[categorize] Gemini failed ({exc}); using fallback.")
+        print(f"[categorize] LLM failed ({exc}); using heuristic fallback.")
         return _fallback(emails)

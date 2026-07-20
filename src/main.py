@@ -1,6 +1,7 @@
 """Lazy Me — fetch today's Gmail, categorize with Gemini, push to Telegram."""
 import argparse
 import sys
+import time
 
 # Emojis in the digest break the default Windows console (cp1252); force UTF-8.
 try:
@@ -141,7 +142,9 @@ def main():
         return
 
     print(f"Sending {len(messages)} message(s) to Telegram...")
-    for text, markup in messages:
+    for i, (text, markup) in enumerate(messages):
+        if i:
+            time.sleep(tg.SEND_GAP_SECONDS)  # pace to avoid flood control
         tg.send(text, reply_markup=markup)
     print("Done.")
 

@@ -145,7 +145,7 @@ All settings live in `.env` (copy from [`.env.example`](.env.example)):
 |---|:---:|---|
 | `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | ✅ | Written automatically by `auth_setup.py`. |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | ✅ | Your bot token and chat id. |
-| `GEMINI_API_KEY` / `GEMINI_MODEL` | ⬜ | Optional — enables AI summaries. Omit for free heuristic mode. |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | ⬜ | Optional — enables AI summaries. Defaults to **`gemma-4-31b-it`**, which is **free of charge** on the Gemini API. Omit the key entirely for the free heuristic mode. |
 | `DIGEST_TIMEZONE` | ⬜ | IANA tz for the "day" window. Default `Asia/Kolkata`. |
 | `BODY_TRUNCATE` | ⬜ | Max chars of body sent to the LLM. Default `500`. |
 | `SEND_ON_EMPTY` | ⬜ | Send a "no mail today" note on empty days. Default `true`. |
